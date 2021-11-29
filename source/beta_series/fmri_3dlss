@@ -1,0 +1,114 @@
+#! /bin/csh
+
+## Pull information from the command line
+set cmdpth = $1 
+set project = $2
+
+## Strip trailing forward slash from homepath
+echo ${cmdpth} | rev | cut -c 2- | rev > ./home_path.txt
+set homepth = `cat ./home_path.txt`
+rm ./home_path.txt
+
+## Construct tmp path from comand line
+set tmppth = ${homepth}/code/${project}/tmp
+echo ${tmppth} # debug
+
+## Access temp directory
+cd ${tmppth} 
+
+## Construct trg path from file
+set trgpth = `cat ./target_path.txt`
+echo ${trgpth} | rev | cut -c 2- | rev > ./target_path.txt
+set trgpth = `cat ./target_path.txt`
+echo ${trgpth} #debug
+
+set outpth = `cat ./out_path.txt`
+echo ${outpth} | rev | cut -c 2- | rev > ./out_path.txt
+set outpth = `cat ./out_path.txt`
+echo ${outpth} #debug
+
+## Pull LSS necessary parameters from /tmp
+set task = `cat ./task.txt`
+set TR = `cat ./TR.txt`
+set nTR = `cat ./nTR.txt`
+set stim_t = `cat ./stim_t.txt`
+set study = `cat ./study.txt`
+set subj = `cat ./subject.txt`
+
+## Load and fix the raw data source path
+set datapth = ${homepth}/data/${project}/mri/mri_clean/${study}_${subj} ## TICKET (hard-code)
+echo ${datapth} # debug
+
+## ----------------------------------------
+## Concatenate the two identification runs
+rm ./concat_runs*
+3dTcat -prefix ./concat_runs \
+    ${datapth}/${task}/run1/${study}.${subj}.${task}.run1.scaled.resid+tlrc \
+    ${datapth}/${task}/run2/${study}.${subj}.${task}.run2.scaled.resid+tlrc \
+
+## ----------------------------------------
+## Use 3dDeconvolve solely to construct and format the regression target, y.)
+## To view the formulated problem, execute the following code: 1dplot <file.1D>
+3dDeconvolve \
+	 -force_TR ${TR} \
+    -input ./concat_runs+tlrc \
+	 -concat '1D: 0 '${nTR}/'' \
+	 -polort A \
+	 -censor ${tmppth}/${study}_${subj}.${task}.cmb.censor.1D \
+	 -num_stimts 25 \
+	 -stim_file 1 ${tmppth}/${study}_${subj}.${task}.cmb.motion.1D'[0]' -stim_base 1 \
+	 -stim_file 2 ${tmppth}/${study}_${subj}.${task}.cmb.motion.1D'[1]' -stim_base 2 \
+	 -stim_file 3 ${tmppth}/${study}_${subj}.${task}.cmb.motion.1D'[2]' -stim_base 3 \
+	 -stim_file 4 ${tmppth}/${study}_${subj}.${task}.cmb.motion.1D'[3]' -stim_base 4 \
+	 -stim_file 5 ${tmppth}/${study}_${subj}.${task}.cmb.motion.1D'[4]' -stim_base 5 \
+	 -stim_file 6 ${tmppth}/${study}_${subj}.${task}.cmb.motion.1D'[5]' -stim_base 6 \
+	 -stim_file 7 ${tmppth}/${study}_${subj}.${task}.cmb.motion.square.1D'[0]' -stim_base 7 \
+	 -stim_file 8 ${tmppth}/${study}_${subj}.${task}.cmb.motion.square.1D'[1]' -stim_base 8 \
+	 -stim_file 9 ${tmppth}/${study}_${subj}.${task}.cmb.motion.square.1D'[2]' -stim_base 9 \
+	 -stim_file 10 ${tmppth}/${study}_${subj}.${task}.cmb.motion.square.1D'[3]' -stim_base 10 \
+	 -stim_file 11 ${tmppth}/${study}_${subj}.${task}.cmb.motion.square.1D'[4]' -stim_base 11 \
+	 -stim_file 12 ${tmppth}/${study}_${subj}.${task}.cmb.motion.square.1D'[5]' -stim_base 12 \
+	 -stim_file 13 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t.1D'[0]' -stim_base 13 \
+	 -stim_file 14 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t.1D'[1]' -stim_base 14 \
+	 -stim_file 15 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t.1D'[2]' -stim_base 15 \
+	 -stim_file 16 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t.1D'[3]' -stim_base 16 \
+	 -stim_file 17 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t.1D'[4]' -stim_base 17 \
+	 -stim_file 18 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t.1D'[5]' -stim_base 18 \
+	 -stim_file 19 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t_square.1D'[0]' -stim_base 19 \
+	 -stim_file 20 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t_square.1D'[1]' -stim_base 20 \
+	 -stim_file 21 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t_square.1D'[2]' -stim_base 21 \
+	 -stim_file 22 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t_square.1D'[3]' -stim_base 22 \
+	 -stim_file 23 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t_square.1D'[4]' -stim_base 23 \
+	 -stim_file 24 ${tmppth}/${study}_${subj}.${task}.cmb.motion_pre_t_square.1D'[5]' -stim_base 24 \
+	 -stim_times_IM 25 ${trgpth}/stim_times.1D 'BLOCK4('${stim_t}/',1)' \
+	 -x1D matrix_${study}_${subj}.1D \
+	 -x1D_stop
+
+## ----------------------------------------
+## Solve for the beta coefficients of GLM
+3dLSS \
+	 -automask \
+	 -input ./concat_runs+tlrc \
+	 -matrix matrix_${study}_${subj}.1D \
+	 -prefix ${outpth}/${study}_${subj}_lss \
+	 -verb
+
+## ----------------------------------------
+## Clean-up
+rm 3dDeconvolve.err
+rm concat_runs+tlrc*
+rm matrix_${study}_${subj}.1D
+rm error+tlrc*
+rm Decon.REML_cmd
+rm Decon+tlrc.*
+
+## Access temp directory
+cd ${outpth} 
+
+## ----------------------------------------
+## Convert to nifti format
+3dAFNItoNIFTI ${outpth}/${study}_${subj}_lss+tlrc -verb
+
+## ----------------------------------------
+## Clean-up
+rm ${study}_${subj}_lss+tlrc.*

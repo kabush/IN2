@@ -1,0 +1,195 @@
+# ========================================
+# ========================================
+# Keith Bush, PhD (2021)
+# Univ. of Arkansas for Medical Sciences
+# Brain Imaging Research Center (BIRC)
+# ========================================
+# ========================================
+
+# ----------------------------------------
+# ----------------------------------------
+    OTHER CONTRIBUTORS:
+# ----------------------------------------
+# ----------------------------------------
+
+Kevin P. Fialkowski (2021)
+
+# ----------------------------------------
+# ----------------------------------------
+    OVERVIEW: 
+# ----------------------------------------
+# ----------------------------------------
+
+Code base supporting research for NSF Award# BCS-1735820 Aim 2
+
+This project is a processing and analysis pipeline used to
+conduct Aim 2 of the NSF Cognitive Neuroscience project titled "Cognitive
+Control Theoretic Mechanisms of Real-time fMRI-guided Neuromodulation"
+(Award# BCS-1735820). For award details, see:
+
+https://www.nsf.gov/awardsearch/showAward?AWD_ID=1735820
+
+# ----------------------------------------
+# ----------------------------------------
+    INTRODUCTION: 
+# ----------------------------------------
+# ----------------------------------------
+
+The purpose of this code is to perform the following tasks:
+
+1) Decoding of Resting State Affect Processing
+    # Apply affect models to resting state data
+
+2) Estimating and Decoding Affect Processing Dynamics
+    # Compute dynamics to include first and second temporal
+    # derivative data for both valence and arousal
+    # Generate and apply affect models to derivative data
+
+3) Transforming Decoding Models to Neuroanatomical Encodings
+    # Perform Haufe encodings of first and second derivative hyperplanes
+
+4) Simulating Resting State Affect Processing
+    # Conduct affect dynamic simulations
+
+# ----------------------------------------
+# ----------------------------------------
+    DATA SOURCES:
+# ----------------------------------------
+# ----------------------------------------
+
+De-identified CTM study data is publicly available as a Brain Imaging
+Data Structure (BIDS) formatted dataset:
+doi:10.18112/openneuro.ds003831.v1.0.0
+Note, the dataset above does not include the (n=19) INCA study subjects
+who did not consent to public release of their de-identified data.
+For replication purposes only, de-identified raw data from the INCA
+study may be made privately available upon request.
+
+# ----------------------------------------
+# ----------------------------------------
+    PROJECT OVERVIEW:
+# ----------------------------------------
+# ----------------------------------------
+
+/IN2
+    run_project.m  # the master script which sequentially
+    		   # calls all supporting scripts.  If the
+	      	   # project executes correctly then the 
+	      	   # log directory will contain a textual
+	      	   # description of all important statistical
+	      	   # findings and the fig directroy will contain
+	      	   # all important figures.  Intermediate data
+	      	   # will be stored at the path location specified
+	      	   # by proj.path.data in the proj.mat 
+
+    matlab_reset.m # clears the workspace and resets matlab's
+                   # path to the initial launch state
+  
+    /tmp
+        # temporary working directory
+    /fig
+        # where plots are stored
+    /log
+        # where statistical findings are stored
+    /source
+        init_project.m  # all project parameters
+    	clean_project.m # wipes the directory storing intermediate files
+        /analysis
+            # contains code for statistical tests and plotting
+        /beta_series
+            # beta_series extraction script
+        /haufe
+            # contains code for constructing permuation
+            # tested Haufe-transformed encoding parameters
+        /dynamics
+            # conducts dynamic analysis of MVPA predictions for the IN2
+            # tasks (1st, 2nd deriv calcs and simulation)
+        /mvpa
+            # whole-brain and dimensionally
+            # reduced MVPA predictions of affect
+    /subj_lists
+        # stores text files listing the included subjects
+        # for each study being used in this project analysis
+
+# ----------------------------------------
+# ----------------------------------------
+    REQUIRED TOOLS
+# ----------------------------------------
+# ----------------------------------------
+
+matlab (Tested only for R2016B)
+    - statistical analysis toolbox
+    - parallel computing toolbox
+
+AFNI (Version AFNI_19.1.04)
+
+FSL (5.0.9)
+
+python (2.7) # HR analysis only (for now)
+    - numpy	
+    - scipy
+    - matplotlib
+    - pandas
+
+# ----------------------------------------
+# ----------------------------------------
+    REQUIRED LIBRARIES
+# ----------------------------------------
+# ----------------------------------------
+
+kablab
+    https://github.com/kabush/kablab    
+
+scralyze
+    http://pspm.sourceforge.net/
+
+export_fig
+    https://www.mathworks.com/matlabcentral/fileexchange/23629-export-fig
+
+nifti (Jimmy Shen)
+    https://www.mathworks.com/matlabcentral/fileexchange/8797-tools-for-nifti-and-analyze-image?s_tid=prof_contriblnk
+
+ApproxRL
+    bosoniu.net/files/repository/readme_approxrl.html
+
+# ----------------------------------------
+# ----------------------------------------
+    COMMITMENT TO OPEN SCIENCE
+# ----------------------------------------
+# ----------------------------------------
+
+This project is commited to transparency and openscience
+principles. Currently the project's codebase is largely written in
+Matlab, csh, and AFNI (with a small set of functions writen in Python
+2.7). A core goal of this project is to migrate the code base entirely
+to a freely available language (~ Python 3).
+
+# ----------------------------------------
+# ----------------------------------------
+    REFERENCES
+# ----------------------------------------
+# ----------------------------------------
+
+Bush KA, Privratsky A, Gardner J, Zielinski MJ, Kilts CD. Common
+Functional Brain States Encode both Perceived Emotion and the
+Psychophysiological Response to Affective Stimuli. Scientific Reports,
+2018; 8:15444. DOI: 10.1038/s441599-018-33621-6.
+
+        https://www.nature.com/articles/s41598-018-33621-6.epdf
+
+
+Bush KA, Gardner J, Privratsky A, Chung M-H, James GA, Kilts CD. Brain
+States that Encode Perceived Emotion are Reproducible Across Studies
+but their Classification Performance is Stimulus
+Dependent. Front. Human Neuroscience, 2018;
+12:262. doi.org/10.3389/fnhum.2018.00262.
+
+	https://www.frontiersin.org/articles/10.3389/fnhum.2018.00262/full
+
+
+Wilson KA, James GA, Kilts CD, Bush KA. Combining Physiological and
+Neuroimaging Measures to Predict Affect Processing Induced by
+Affectively Valence Image Stimuli. Scientific Reports, 2020;
+10:9298. DOI: 10.1038/s41598-020-66109-3.
+
+        https://www.nature.com/articles/s41598-020-66109-3.pdf

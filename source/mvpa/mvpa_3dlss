@@ -1,0 +1,73 @@
+#! /bin/csh
+
+##
+## Set data paths
+##
+set tmp_path = '/home/kfialkowski/workspace/code/IN2/tmp'
+
+## Use 3dDeconvolve solely to construct and format the regression target, y.)
+## To view the formulated problem, execute the following code: 1dplot <file.1D>
+
+3dDeconvolve \
+    -force_TR 2.000 \
+    -input ${tmp_path}/rest+tlrc \
+    -polort A \
+    -censor ${tmp_path}/censor.1D \
+    -num_stimts 25 \
+    -stim_file 1 ${tmp_path}/motion.1D'[0]' -stim_base 1 \
+    -stim_file 2 ${tmp_path}/motion.1D'[1]' -stim_base 2 \
+    -stim_file 3 ${tmp_path}/motion.1D'[2]' -stim_base 3 \
+    -stim_file 4 ${tmp_path}/motion.1D'[3]' -stim_base 4 \
+    -stim_file 5 ${tmp_path}/motion.1D'[4]' -stim_base 5 \
+    -stim_file 6 ${tmp_path}/motion.1D'[5]' -stim_base 6 \
+    -stim_file 7 ${tmp_path}/motion_square.1D'[0]' -stim_base 7 \
+    -stim_file 8 ${tmp_path}/motion_square.1D'[1]' -stim_base 8 \
+    -stim_file 9 ${tmp_path}/motion_square.1D'[2]' -stim_base 9 \
+    -stim_file 10 ${tmp_path}/motion_square.1D'[3]' -stim_base 10 \
+    -stim_file 11 ${tmp_path}/motion_square.1D'[4]' -stim_base 11 \
+    -stim_file 12 ${tmp_path}/motion_square.1D'[5]' -stim_base 12 \
+    -stim_file 13 ${tmp_path}/motion_pre_t.1D'[0]' -stim_base 13 \
+    -stim_file 14 ${tmp_path}/motion_pre_t.1D'[1]' -stim_base 14 \
+    -stim_file 15 ${tmp_path}/motion_pre_t.1D'[2]' -stim_base 15 \
+    -stim_file 16 ${tmp_path}/motion_pre_t.1D'[3]' -stim_base 16 \
+    -stim_file 17 ${tmp_path}/motion_pre_t.1D'[4]' -stim_base 17 \
+    -stim_file 18 ${tmp_path}/motion_pre_t.1D'[5]' -stim_base 18 \
+    -stim_file 19 ${tmp_path}/motion_pre_t_square.1D'[0]' -stim_base 19 \
+    -stim_file 20 ${tmp_path}/motion_pre_t_square.1D'[1]' -stim_base 20 \
+    -stim_file 21 ${tmp_path}/motion_pre_t_square.1D'[2]' -stim_base 21 \
+    -stim_file 22 ${tmp_path}/motion_pre_t_square.1D'[3]' -stim_base 22 \
+    -stim_file 23 ${tmp_path}/motion_pre_t_square.1D'[4]' -stim_base 23 \
+    -stim_file 24 ${tmp_path}/motion_pre_t_square.1D'[5]' -stim_base 24 \
+    -stim_times_IM 25 ${tmp_path}/stim_times.1D 'BLOCK4(2,1)' \
+    -x1D matrix_rest.1D \
+    -x1D_stop
+
+## 
+## Solve for the beta coefficients of GLM
+## 
+3dLSS \
+    -automask \
+    -input ${tmp_path}/rest+tlrc \
+    -matrix matrix_rest.1D \
+    -prefix ${tmp_path}/rest_lss \
+    -verb
+
+##
+## Clean-up
+##
+rm 3dDeconvolve.err
+rm matrix_rest.1D
+rm Decon.REML_cmd
+
+##
+## Convert to nifti format
+##
+3dAFNItoNIFTI ${tmp_path}/rest_lss+tlrc  -verb
+
+##
+## Move output to ${output}, conversion (above) does not
+## respect output paths
+##
+mv rest_lss.nii ${tmp_path}/
+rm ${tmp_path}/rest_lss+tlrc.BRIK
+rm ${tmp_path}/rest_lss+tlrc.HEAD
