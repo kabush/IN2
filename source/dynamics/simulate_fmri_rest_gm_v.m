@@ -30,8 +30,9 @@ end
 subjs = load_subjs(proj);
 
 %% ----------------------------------------
-%% persistent error storage for analysis
+%% persistent data storage for analysis
 running_all_err_free = [];
+b_vals = [];
 
 %% ----------------------------------------
 %% loop simulation
@@ -42,7 +43,7 @@ for loop = 1:loops
     % log iteration
     logger(['Simulation Iteration ',num2str(loop)],proj.path.logfile);
     
-    %% error storage for analysis
+    %% data storage
     all_err_rplc = [];
     all_err_free = [];
     bad_count = 0;
@@ -50,13 +51,16 @@ for loop = 1:loops
     %% ----------------------------------------
     %% Transform beta-series into affect series {v}
     for i = 1:numel(subjs)
-
+        
         %% extract subject info
         subj_study = subjs{i}.study;
         name = subjs{i}.name;
         id = subjs{i}.id;
 
         try
+            
+            nsteps = [];
+            rmse = [];
 
             %% Load affective state predictions
             load([proj.path.dyn.rest,subj_study,'_',name,'_prds.mat'],'prds');
@@ -215,11 +219,20 @@ for loop = 1:loops
                 dh = rdx_dh_out(good_indx(ii));    %estimate dh
                 d2h = rdx_d2h_out(good_indx(ii));  %estimate d2h
 
-                for k=1:Nstep
+                dh_sim = [];
 
+                for k=1:Nstep
+                    dh_sim = [dh_sim,dh];
                     h = h+dh;
                     dh = dh+d2h;    
                     d2h = rdx_d2h_out(good_indx(ii)+k);  %estimate d2h
+
+                    %Conduct RMSE analysis
+                    if loop == 1
+                        mse_current = sqrt(immse(dh_sim, rdx_dh_out(good_indx(ii):(good_indx(ii)+k-1))));
+                        rmse = [rmse; mse_current];
+                        nsteps = [nsteps; k];
+                    end
 
                     h_new = h;
                     h_trg = rdx_h_trg(good_indx(ii)+k);  % get true state
@@ -258,6 +271,13 @@ for loop = 1:loops
 
             err_free = (median(real_err_free(1:numel(good_indx),:).^2,'omitnan')-median(sham_err_free(1:numel(good_indx),:).^2,'omitnan'));
             all_err_free = [all_err_free;err_free];
+            
+            %% MSE analysis of simulation via iteratively reweighted least-squares regression
+            
+            if loop==1
+                [b,stat] = robustfit(nsteps,rmse);
+                b_vals = [b_vals, b(2)];
+            end
 
         catch
             % log subject
@@ -265,9 +285,15 @@ for loop = 1:loops
             logger(['   -error in fmri rest simulation'],proj.path.logfile);
             bad_count = bad_count + 1;
         end
-
+        
     end
     
+    % Group-level stats for MSE analysis
+    if loop==1
+        mean_b_val=mean(b_vals);
+        [h_val,p_val,ci_val,stats_val]=ttest(b_vals);
+    end
+        
     running_all_err_free = cat(3,running_all_err_free,all_err_free);
     
 end
